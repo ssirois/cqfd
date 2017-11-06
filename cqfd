@@ -109,17 +109,17 @@ docker_build() {
 # docker_run() - run command in configured container
 # A few implementation details:
 #
-# - The user executing the build commands inside the container is
-#   named 'builder', with the same uid/gid as your user to keep
+# - The user executing the build commands inside the container has
+#   the same name, with the same uid/gid as your user to keep
 #   filesystem permissions in sync.
 #
-# - Your project's source directory is always mapped to ~builder/src/
+# - Your project's source directory is mapped to the same location
 #
-# - Your ~/.ssh directory is mapped to ~builder/.ssh to provide access
+# - Your ~/.ssh directory is mapped to ~/.ssh to provide access
 #   to the ssh keys (your build may pull authenticated git repos for
 #   example).
 #
-# arg$1: the command string to execute as builder
+# arg$1: the command string to execute
 #
 docker_run() {
 	local interactive_options
@@ -152,21 +152,21 @@ docker_run() {
 		done
 	fi
 
-	docker run --privileged -v "$PWD":/home/builder/src \
-	       -v ~/.ssh:/home/builder/.ssh \
+	docker run --privileged -v "$PWD:$PWD" \
+	       -v "$HOME/.ssh:$HOME/.ssh" \
 	       --rm \
 	       --log-driver=none \
 	       $extravol \
 	       $extrahosts \
 	       $extraenv \
 	       $interactive_options \
-	       ${SSH_AUTH_SOCK:+ -v $SSH_AUTH_SOCK:/home/builder/.sockets/ssh} \
-	       ${SSH_AUTH_SOCK:+ -e SSH_AUTH_SOCK=/home/builder/.sockets/ssh} \
+	       ${SSH_AUTH_SOCK:+ -v $SSH_AUTH_SOCK:$HOME/.sockets/ssh} \
+	       ${SSH_AUTH_SOCK:+ -e SSH_AUTH_SOCK=$HOME/.sockets/ssh} \
 	       $docker_img_name \
-	       /bin/bash -c "groupadd -og $GROUPS -f builders && \
-	       useradd -s /bin/bash -ou $UID -g $GROUPS builder && \
-	       chown $UID:$GROUPS /home/builder && \
-	       su builder -p -c \"cd ~builder/src/ && $1\" 2>&1"
+	       /bin/bash -c "groupadd -og $GROUPS -f $GROUPS && \
+	       useradd -s /bin/bash -ou $UID -g $GROUPS $USER && \
+	       chown $UID:$GROUPS /home/$USER && \
+	       su $USER -p -c \"cd $PWD && $1\" 2>&1"
 }
 
 # make_archive(): Create a release package.
