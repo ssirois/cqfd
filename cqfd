@@ -170,6 +170,18 @@ docker_run() {
 		home_env_var=""
 	fi
 
+	# CQFD_EXTRA_GROUPS is a comma-sperated list
+	extragroups=""
+	if [ -n "$CQFD_EXTRA_GROUPS" ]; then
+		local group extragroups
+		for group in ${CQFD_EXTRA_GROUPS//,/ }; do
+			extragroups+="groupadd --force $group &&"
+		done
+		extragroups+="usermod --append --groups $CQFD_EXTRA_GROUPS builder"
+	else
+		extragroups="/bin/true"
+	fi
+
 	docker run --privileged -v "$PWD":/home/builder/src \
 	       -v ~/.ssh:/home/builder/.ssh \
 	       --rm \
@@ -185,6 +197,7 @@ docker_run() {
 	       $docker_img_name \
 	       /bin/bash -c "groupadd -og $GROUPS -f builders && \
 	       useradd -s /bin/bash -ou $UID -g $GROUPS builder && \
+	       $extragroups && \
 	       chown $UID:$GROUPS /home/builder && \
 	       su builder -p -c \"cd ~builder/src/ && $1\" 2>&1"
 }

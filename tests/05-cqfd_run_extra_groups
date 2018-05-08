@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. `dirname $0`/jtest.inc "$1"
+cqfd="$TDIR/.cqfd/cqfd"
+
+cd $TDIR/
+
+
+################################################################################
+# `cqfd run` adds CQFD_EXTRA_GROUPS to builder user
+################################################################################
+jtest_prepare "run cqfd adds CQFD_EXTRA_GROUPS to builder user"
+defaultGroup="dummy"
+extraGroup1="group-$RANDOM"
+extraGroup2="group-$RANDOM"
+
+result=$(CQFD_EXTRA_GROUPS="$extraGroup1,$extraGroup2" $cqfd run 'groups | xargs echo -n')
+
+if [ "$result" = "$defaultGroup $extraGroup1 $extraGroup2" ]; then
+    jtest_result pass
+else
+    jtest_result fail
+fi
+
