@@ -169,6 +169,10 @@ same as (and passed to) docker-run’s --add-host option.
 variables to be passed to the started container. Format is the
 same as (and passed to) docker-run’s -e option.
 
+``CQFD_EXTRA_GROUPS``: A comma-separated list of additional groups
+for `builder` user. Format is the same as (and passed to) usermod’s
+--groups option.
+
 ### Other command-line options ###
 
 In some conditions you may want to use an alternate config file with
